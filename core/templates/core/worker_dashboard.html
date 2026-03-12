@@ -1,0 +1,106 @@
+{% extends 'core/base.html' %}
+{% load currency_tags %}
+
+{% block content %}
+<div class="flex-grow bg-[#ecfdf5] p-6 md:p-12 transition-all duration-300">
+    <div class="max-w-7xl mx-auto">
+        
+        <!-- Header Section -->
+        <div class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="text-3xl font-bold text-emerald-900">Worker Dashboard</h1>
+                <p class="text-emerald-700 mt-1">Find gigs, submit work, and earn.</p>
+            </div>
+            
+            <div class="glass bg-white/60 p-3 rounded-xl shadow-sm border border-emerald-100 flex items-center space-x-4">
+                <div>
+                     <p class="text-xs text-emerald-600 font-bold uppercase tracking-wider">Earnings Balance</p>
+                     <p class="text-xl font-bold text-emerald-900">{{ wallet_balance|dual_currency }}</p>
+                </div>
+                <button class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md transition-transform hover:-translate-y-0.5">
+                    Withdraw
+                </button>
+            </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            
+            <!-- Left Column: Self Promotion -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="glass bg-white p-6 rounded-2xl shadow-sm border border-emerald-100 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-yellow-400 opacity-10 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                    
+                    <h2 class="text-xl font-bold text-emerald-900 mb-2 flex items-center">
+                        <svg class="w-5 h-5 text-yellow-500 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                        Self Promote
+                    </h2>
+                    <p class="text-sm text-emerald-700 mb-4">Boost your profile in the Popular Services directory by placing a bid from your wallet.</p>
+                    
+                    <form method="POST" action="{% url 'promote_worker' %}" class="space-y-4">
+                        {% csrf_token %}
+                        <div>
+                            <label class="block text-xs font-bold text-emerald-800 uppercase tracking-wide mb-1">Bid Amount ($)</label>
+                            <input type="number" name="bid_amount" step="0.01" min="1.00" required class="w-full px-4 py-2 rounded-lg border border-emerald-200 focus:ring-2 focus:ring-emerald-500 outline-none bg-emerald-50 text-emerald-900 font-bold" placeholder="5.00">
+                        </div>
+                        <button type="submit" class="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-bold py-3 rounded-xl shadow-lg transition-transform hover:-translate-y-0.5 mt-2">
+                            Place Bid & Promote
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Column: My Active Jobs -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-bold text-emerald-900">My Ongoing Gigs</h2>
+                    <a href="{% url 'marketplace' %}" class="text-sm font-semibold text-emerald-700 hover:text-emerald-900 bg-emerald-100 px-4 py-2 rounded-lg shadow-sm transition-colors">Browse More Gigs &rarr;</a>
+                </div>
+                
+                <div class="space-y-4">
+                    {% for job in my_jobs %}
+                    <div class="glass bg-white p-6 rounded-xl shadow-sm border-l-4 
+                        {% if job.status == 'COMPLETED' %}border-l-emerald-500
+                        {% elif job.status == 'SUBMITTED' %}border-l-yellow-400
+                        {% else %}border-l-blue-500{% endif %}">
+                        
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold text-xl text-slate-800">{{ job.title }}</h3>
+                            <span class="text-sm font-bold tracking-wide uppercase px-3 py-1 rounded-full 
+                                {% if job.status == 'COMPLETED' %}bg-emerald-100 text-emerald-700
+                                {% elif job.status == 'SUBMITTED' %}bg-yellow-100 text-yellow-700
+                                {% else %}bg-blue-100 text-blue-700{% endif %}">
+                                {{ job.get_status_display }}
+                            </span>
+                        </div>
+                        <p class="text-emerald-800 font-bold mt-2">{{ job.budget|dual_currency }}</p>
+                        <p class="text-slate-500 mt-2 text-sm">{{ job.description }}</p>
+                        
+                        <!-- Submit Work Action -->
+                        {% if job.status == 'IN_PROGRESS' %}
+                        <div class="mt-6 pt-4 border-t border-slate-100">
+                            <form method="POST" action="{% url 'submit_work' job.id %}" enctype="multipart/form-data" class="space-y-3">
+                                {% csrf_token %}
+                                <p class="text-sm font-medium text-slate-700 mb-2">Ready to submit your work?</p>
+                                <div class="flex items-center space-x-2">
+                                    <input type="file" name="file_submission" required class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
+                                    <button type="submit" class="px-6 py-2 bg-emerald-600 text-white text-sm font-bold rounded-lg hover:bg-emerald-700 whitespace-nowrap shadow-md">Upload & Submit</button>
+                                </div>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-16 glass bg-white/50 rounded-xl border-2 border-emerald-100 border-dashed">
+                        <svg class="w-16 h-16 text-emerald-200 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        <h3 class="text-xl font-bold text-emerald-800 mb-2">You haven't claimed any gigs yet!</h3>
+                        <p class="text-emerald-600 mb-6">Head over to the Marketplace to find opportunities.</p>
+                        <a href="{% url 'marketplace' %}" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition-transform hover:-translate-y-1 inline-block">Explore Gigs to Earn</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

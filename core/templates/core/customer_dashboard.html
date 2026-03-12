@@ -1,0 +1,144 @@
+{% extends 'core/base.html' %}
+{% load currency_tags %}
+
+{% block content %}
+<div class="flex-grow bg-[#f8fafc] p-6 md:p-12 transition-all duration-300">
+    <div class="max-w-7xl mx-auto">
+        
+        <div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-800">Customer Dashboard</h1>
+                <p class="text-slate-500 mt-1">Track your product orders and manage offline service bookings.</p>
+            </div>
+            
+            <div class="glass bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-6 min-w-[300px]">
+                <div class="flex-grow">
+                    <h3 class="text-slate-500 text-xs font-bold uppercase tracking-wide">Wallet Balance</h3>
+                    <p class="text-2xl font-bold text-slate-800">{{ wallet_balance|dual_currency }}</p>
+                </div>
+                <form action="{% url 'add_funds' %}" method="POST" class="flex flex-col space-y-2">
+                    {% csrf_token %}
+                    <div class="flex space-x-2">
+                        <input type="number" name="amount" min="1" required class="w-20 pl-2 pr-1 py-1 text-sm border-slate-200 rounded-md bg-slate-50 border outline-none focus:border-indigo-500" placeholder="$">
+                        <button type="submit" class="text-xs bg-indigo-600 text-white font-bold px-3 py-1 rounded-md hover:bg-indigo-700 transition-colors shadow">Add</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Offline Service Bookings -->
+            <div class="space-y-6">
+                <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                    <h2 class="text-xl font-bold text-slate-800">My Service Bookings</h2>
+                    <a href="#" class="text-sm font-bold text-indigo-600 hover:underline">Book New Service</a>
+                </div>
+                
+                <div class="space-y-4">
+                    {% for booking in my_bookings %}
+                    <div class="glass bg-white p-6 rounded-2xl shadow-sm border {% if booking.status == 'PENDING' %}border-yellow-200{% elif booking.status == 'CONFIRMED' %}border-emerald-200{% else %}border-slate-100{% endif %} hover:shadow-md transition-shadow relative overflow-hidden">
+                        
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="font-bold text-lg text-slate-800">{{ booking.service.title }}</h3>
+                                <p class="text-sm text-slate-500 flex items-center mt-1">
+                                    <svg class="w-4 h-4 mr-1 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                    {{ booking.service.location }}
+                                </p>
+                            </div>
+                            <span class="px-3 py-1 text-xs font-bold rounded-full 
+                                {% if booking.status == 'PENDING' %}bg-yellow-100 text-yellow-800
+                                {% elif booking.status == 'CONFIRMED' %}bg-emerald-100 text-emerald-800
+                                {% elif booking.status == 'COMPLETED' %}bg-slate-100 text-slate-600
+                                {% else %}bg-red-100 text-red-800{% endif %}">
+                                {{ booking.get_status_display }}
+                            </span>
+                        </div>
+                        
+                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 mb-4">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Provider</p>
+                                    <p class="font-medium text-slate-800">{{ booking.service.provider.username }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs font-bold text-slate-500 uppercase">Scheduled For</p>
+                                    <p class="font-bold text-indigo-700">{{ booking.booking_date|date:"F j, Y - g:i A" }}</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Live Countdown Timer (If Confirmed) -->
+                            {% if booking.status == 'CONFIRMED' %}
+                            <div class="mt-4 pt-4 border-t border-slate-200">
+                                <p class="text-xs font-bold text-emerald-600 uppercase mb-1 flex items-center">
+                                    <svg class="w-4 h-4 mr-1 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Service Countdown
+                                </p>
+                                <div class="flex space-x-2 text-center" data-countdown="{{ booking.booking_date|date:'Y-m-d\TH:i:s' }}">
+                                    <div class="bg-white px-2 py-1 rounded shadow-sm border border-emerald-100 flex-1"><span class="block font-bold text-emerald-800 cd-days">0</span><span class="text-[10px] text-slate-400 uppercase">Days</span></div>
+                                    <div class="bg-white px-2 py-1 rounded shadow-sm border border-emerald-100 flex-1"><span class="block font-bold text-emerald-800 cd-hours">0</span><span class="text-[10px] text-slate-400 uppercase">Hours</span></div>
+                                    <div class="bg-white px-2 py-1 rounded shadow-sm border border-emerald-100 flex-1"><span class="block font-bold text-emerald-800 cd-mins">0</span><span class="text-[10px] text-slate-400 uppercase">Mins</span></div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-12 glass bg-white rounded-2xl border border-slate-200">
+                        <svg class="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <p class="text-slate-500">You haven't booked any offline services yet.</p>
+                        <a href="#" class="inline-block mt-4 bg-indigo-50 text-indigo-600 font-bold px-4 py-2 rounded-lg hover:bg-indigo-100 transition-colors">Browse Services</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Product Orders (Placeholder) -->
+            <div class="space-y-6">
+                <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                    <h2 class="text-xl font-bold text-slate-800">My Product Orders</h2>
+                    <a href="#" class="text-sm font-bold text-indigo-600 hover:underline">Shop Products</a>
+                </div>
+                
+                <div class="text-center py-12 glass bg-white rounded-2xl border border-slate-200">
+                    <svg class="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                    <p class="text-slate-500">You haven't ordered any physical products yet.</p>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<script>
+    // Live Countdown Logic
+    document.addEventListener('DOMContentLoaded', () => {
+        const countdowns = document.querySelectorAll('[data-countdown]');
+        
+        countdowns.forEach(container => {
+            const targetDate = new Date(container.getAttribute('data-countdown')).getTime();
+            
+            const updateTimer = () => {
+                const now = new Date().getTime();
+                const distance = targetDate - now;
+                
+                if (distance < 0) {
+                    container.innerHTML = '<div class="bg-emerald-50 text-emerald-700 font-bold px-4 py-2 rounded border border-emerald-200 text-center w-full">Service should be happening now!</div>';
+                    return;
+                }
+                
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                
+                container.querySelector('.cd-days').textContent = days;
+                container.querySelector('.cd-hours').textContent = hours;
+                container.querySelector('.cd-mins').textContent = minutes;
+            };
+            
+            updateTimer();
+            setInterval(updateTimer, 60000); // Update every minute
+        });
+    });
+</script>
+{% endblock %}

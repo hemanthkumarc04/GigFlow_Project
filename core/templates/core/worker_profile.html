@@ -1,0 +1,134 @@
+{% extends 'core/base.html' %}
+{% load currency_tags %}
+
+{% block content %}
+<div class="flex-grow bg-[#f8fafc] p-6 md:p-12 transition-all duration-300">
+    <div class="max-w-4xl mx-auto space-y-8">
+        
+        <!-- Profile Header -->
+        <div class="glass bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col md:flex-row items-center md:items-start gap-8 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-400 opacity-5 rounded-full blur-3xl -mr-20 -mt-20"></div>
+            
+            <!-- Avatar -->
+            <div class="w-32 h-32 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 shadow-lg border-4 border-white flex items-center justify-center text-5xl font-bold text-white relative z-10 shrink-0">
+                {{ worker.username|make_list|first|upper }}
+            </div>
+            
+            <div class="flex-grow text-center md:text-left relative z-10">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 class="text-3xl font-bold text-slate-800">{{ worker.username }}</h1>
+                        <p class="text-emerald-600 font-medium">Platform Worker</p>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
+                        <svg class="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                        <span class="text-xl font-bold text-slate-700">{{ worker.average_rating|floatformat:1 }}</span>
+                        <span class="text-slate-400 text-sm">({{ reviews.count }} reviews)</span>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex flex-wrap gap-2 justify-center md:justify-start">
+                    {% if worker.skills %}
+                        {% for skill in worker.skills.split %}
+                        <span class="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full border border-emerald-100 uppercase tracking-wide">
+                            {{ skill }}
+                        </span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="text-slate-400 text-sm italic">No specific skills listed.</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column: Assign Job (if Provider) -->
+            <div class="lg:col-span-1 space-y-6">
+                {% if request.user.is_authenticated and request.user.user_type == 'PROVIDER' %}
+                <div class="glass bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-700 text-white">
+                    <h2 class="text-lg font-bold text-white mb-2">Direct Hire</h2>
+                    <p class="text-slate-400 text-sm mb-6">Assign one of your open jobs directly to {{ worker.username }}.</p>
+                    
+                    <form method="POST" action="{% url 'assign_job' worker.username %}" class="space-y-4">
+                        {% csrf_token %}
+                        <div>
+                            <select name="job_id" required class="w-full px-4 py-3 rounded-xl border border-slate-600 bg-slate-900 focus:ring-2 focus:ring-emerald-500 outline-none text-white text-sm">
+                                <option value="" disabled selected>Select an Open Job...</option>
+                                {% for job in open_provider_jobs %}
+                                <option value="{{ job.id }}">{{ job.title }} ({{ job.budget|dual_currency }})</option>
+                                {% empty %}
+                                <option value="" disabled>You have no open jobs.</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" {% if not open_provider_jobs %}disabled{% endif %} class="w-full bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl shadow-md transition-colors">
+                            Assign to Job
+                        </button>
+                        {% if not open_provider_jobs %}
+                        <p class="text-xs text-center text-slate-400 mt-2">
+                            <a href="{% url 'provider_dashboard' %}#post-job" class="text-emerald-400 hover:underline">Post a new job</a> first.
+                        </p>
+                        {% endif %}
+                    </form>
+                </div>
+                {% elif not request.user.is_authenticated %}
+                <div class="glass bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center">
+                    <h2 class="text-lg font-bold text-slate-800 mb-2">Interested in Hiring?</h2>
+                    <p class="text-slate-500 text-sm mb-4">Log in as a Provider to directly assign tasks to this worker.</p>
+                    <a href="{% url 'login' %}?next={{ request.path }}" class="inline-block bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-6 rounded-xl transition-colors">Log In</a>
+                </div>
+                {% endif %}
+                
+                <!-- Quick Stats -->
+                <div class="glass bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="font-bold text-slate-800 mb-4 border-b pb-2">Completed Jobs</h3>
+                    <p class="text-3xl font-bold text-emerald-600">{{ completed_jobs }}</p>
+                </div>
+            </div>
+
+            <!-- Right Column: Reviews -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="glass bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6 border-b pb-4">Client Reviews</h2>
+                    
+                    <div class="space-y-6">
+                        {% for review in reviews %}
+                        <div class="border-b border-slate-50 pb-6 last:border-0 last:pb-0">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">
+                                        {{ review.reviewer.username|make_list|first|upper }}
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-slate-800">{{ review.reviewer.username }}</h4>
+                                        <p class="text-xs text-slate-400">{{ review.created_at|date:"M d, Y" }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex text-yellow-400 text-sm">
+                                    {% for i in "12345"|make_list %}
+                                        {% if forloop.counter <= review.rating %}
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                                        {% else %}
+                                        <svg class="w-4 h-4 text-slate-200" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <p class="text-slate-600 text-sm italic items-center flex">
+                                "{{ review.comment }}"
+                            </p>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-8 text-slate-500">
+                            <p>No reviews yet.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,160 @@
+{% extends 'core/base.html' %}
+{% load currency_tags %}
+
+{% block content %}
+<div class="flex-grow bg-[#f8fafc] p-6 md:p-12 transition-all duration-300">
+    <div class="max-w-7xl mx-auto">
+        
+        <!-- Header Section -->
+        <div class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-800">Provider Dashboard</h1>
+                <p class="text-slate-500 mt-1">Manage your posted jobs and review submissions.</p>
+            </div>
+            <div class="flex space-x-3">
+                <a href="{% url 'marketplace' %}" class="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-6 py-2 rounded-lg font-medium shadow-sm transition-transform hover:-translate-y-0.5 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    Marketplace
+                </a>
+                <a href="#post-job" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium shadow-md transition-transform hover:-translate-y-0.5">
+                    + Post New Job
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column: Stats & Post Form -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Wallet Card -->
+                <div class="glass bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="text-slate-500 text-sm font-medium uppercase tracking-wide">Escrow Balance</h3>
+                    <p class="text-3xl font-bold mt-2 text-slate-800">{{ wallet_balance|dual_currency }}</p>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                        <span class="text-sm text-slate-500">Available to deposit</span>
+                        <form action="{% url 'add_funds' %}" method="POST" class="flex space-x-2 relative w-32">
+                            {% csrf_token %}
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 sm:text-sm">$</span>
+                            </div>
+                            <input type="number" name="amount" min="1" required class="block w-full pl-7 pr-2 py-1 sm:text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-slate-50 border">
+                            <button type="submit" class="text-xs bg-slate-800 text-white font-medium px-2 py-1 rounded hover:bg-slate-700">Add</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Post Job Form Placeholder -->
+                <div id="post-job" class="glass bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <h2 class="text-xl font-bold text-slate-800 mb-4">Post a Gig</h2>
+                    <form method="POST" action="{% url 'post_job' %}" enctype="multipart/form-data" class="space-y-4">
+                        {% csrf_token %}
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Title</label>
+                            <input type="text" name="title" required class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Build a website">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Category</label>
+                            <select name="category" required class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                                <option value="" disabled selected>Select a category</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat.id }}">{{ cat.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Description</label>
+                            <textarea name="description" required class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Requirements..." rows="3"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Budget ($)</label>
+                            <input type="number" name="budget" step="0.01" required class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="150.00">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Cover Image (Optional)</label>
+                            <input type="file" name="featured_image" accept="image/*" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        </div>
+                        <button type="submit" class="w-full py-2 bg-blue-600 text-white hover:bg-blue-700 font-medium rounded-lg transition-colors">
+                            Pay Escrow & Post Job
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Column: My Jobs -->
+            <div class="lg:col-span-2 space-y-6">
+                <h2 class="text-xl font-bold text-slate-800">Your Active Jobs</h2>
+                
+                <div class="space-y-4 lg:space-y-6 lg:grid lg:grid-cols-2 gap-4">
+                    {% for job in posted_jobs %}
+                    <div class="glass bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow relative overflow-hidden group">
+                        
+                        <!-- Premium Image Thumbnail like Food Delivery Apps -->
+                        {% if job.featured_image %}
+                        <div class="w-full h-32 bg-gray-200 relative overflow-hidden">
+                            <img src="{{ job.featured_image.url }}" class="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" alt="Job Cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                        </div>
+                        {% else %}
+                        <div class="w-full h-8 bg-gradient-to-r from-blue-500 to-indigo-600 opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                        {% endif %}
+                        
+                        <div class="p-6 pt-4 relative z-10 bg-white">
+                            <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-bold text-lg text-slate-800">{{ job.title }}</h3>
+                                <p class="text-sm text-slate-500 mt-1 line-clamp-2">{{ job.description }}</p>
+                            </div>
+                            <span class="px-3 py-1 text-xs font-semibold rounded-full 
+                                {% if job.status == 'OPEN' %}bg-green-100 text-green-700
+                                {% elif job.status == 'IN_PROGRESS' %}bg-blue-100 text-blue-700
+                                {% elif job.status == 'SUBMITTED' %}bg-yellow-100 text-yellow-700
+                                {% else %}bg-slate-100 text-slate-700{% endif %}">
+                                {{ job.get_status_display }}
+                            </span>
+                        </div>
+                        
+                        <div class="mt-4 flex items-center justify-between text-sm">
+                            <div class="flex space-x-4 text-slate-500">
+                                <span class="flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg> 
+                                    {% if job.worker %}
+                                    <a href="{% url 'worker_profile' job.worker.username %}" class="hover:text-blue-600 hover:underline transition-colors focus:outline-none" title="View Profile">{{ job.worker.username }}</a>
+                                    {% else %}
+                                    Unassigned
+                                    {% endif %}
+                                </span>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            {% if job.status == 'SUBMITTED' %}
+                            <div class="flex space-x-2">
+                                <a target="_blank" href="{% url 'review_work_preview' job.id %}" class="text-xs font-semibold bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300">Preview</a>
+                                <form method="POST" action="{% url 'approve_work' job.id %}" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="text-xs font-semibold bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">Approve & Pay</button>
+                                </form>
+                                <form method="POST" action="{% url 'reject_work' job.id %}" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="text-xs font-semibold bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-200" onclick="return confirm('Are you sure you want to reject this submission? The worker will have to resubmit.');">Reject</button>
+                                </form>
+                            </div>
+                            {% elif job.status == 'COMPLETED' %}
+                            <a href="{{ job.file_submission.url }}" download class="text-xs font-semibold bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Download Raw File</a>
+                            {% elif job.status == 'OPEN' %}
+                            <form method="POST" action="{% url 'delete_job' job.id %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="text-slate-400 font-medium hover:text-red-500 text-sm" onclick="return confirm('Cancel this job and refund ${{ job.budget }} to your balance?');">Cancel Job</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-12 glass bg-white rounded-xl shadow-sm border border-slate-100 border-dashed">
+                        <p class="text-slate-500">You haven't posted any jobs yet.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

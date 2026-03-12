@@ -1,0 +1,92 @@
+{% extends 'core/base.html' %}
+{% load currency_tags %}
+
+{% block content %}
+<div class="flex-grow bg-[#fffbeb] p-6 md:p-12 transition-all duration-300">
+    <div class="max-w-7xl mx-auto">
+        
+        <div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-4 border-b border-amber-200 pb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-amber-900">Seller Dashboard</h1>
+                <p class="text-amber-700 mt-1">Manage your physical products inventory and track store sales.</p>
+            </div>
+            
+            <div class="glass bg-white p-4 rounded-xl shadow border border-amber-100 flex items-center space-x-6">
+                <div>
+                    <h3 class="text-amber-600 text-xs font-bold uppercase tracking-wide">Store Revenue</h3>
+                    <p class="text-2xl font-bold text-amber-900">{{ wallet_balance|dual_currency }}</p>
+                </div>
+                <button class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2 rounded-lg transition-colors shadow-sm">Withdraw</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Add Product Form -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="glass bg-white p-6 rounded-2xl shadow-sm border border-amber-100">
+                    <h2 class="text-xl font-bold text-amber-900 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                        List New Product
+                    </h2>
+                    
+                    <form method="POST" action="#" enctype="multipart/form-data" class="space-y-4">
+                        {% csrf_token %}
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Product Name</label>
+                            <input type="text" name="name" required class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500 outline-none bg-slate-50">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Description</label>
+                            <textarea name="description" required rows="3" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500 outline-none bg-slate-50"></textarea>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Price ($)</label>
+                                <input type="number" name="price" step="0.01" min="0" required class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500 outline-none bg-slate-50">
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Stock</label>
+                                <input type="number" name="stock" min="1" required class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500 outline-none bg-slate-50">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Product Image</label>
+                            <input type="file" name="image" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100">
+                        </div>
+                        <button type="button" onclick="alert('Product listing endpoint pending backend connection')" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-lg shadow transition-colors mt-2">Publish Product</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Inventory Grid -->
+            <div class="lg:col-span-2 space-y-6">
+                <h2 class="text-xl font-bold text-amber-900">Current Inventory</h2>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {% for product in my_products %}
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex gap-4 items-center">
+                        <div class="w-20 h-20 bg-amber-100 rounded-lg flex items-center justify-center text-amber-500 shrink-0 overflow-hidden">
+                            {% if product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+                            {% else %}
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow">
+                            <h3 class="font-bold text-slate-800">{{ product.name }}</h3>
+                            <p class="text-amber-600 font-bold text-sm">{{ product.price|dual_currency }} <span class="text-slate-400 font-normal ml-2">Stock: {{ product.stock }}</span></p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-span-2 text-center py-12 glass bg-white rounded-2xl border border-slate-200">
+                        <svg class="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                        <p class="text-slate-500">Your store is empty. List your first product to start selling!</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

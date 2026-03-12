@@ -1,0 +1,13 @@
+env
+*.pyc
+.env
+# Security
+.env
+
+# Database (Never push your local database to GitHub!)
+db.sqlite3
+
+# Python Virtual Environment
+env/
+venv/
+__pycache__/
