@@ -131,7 +131,7 @@ def provider_dashboard(request):
         'wallet_balance': request.user.wallet_balance,
         'categories': Category.objects.all(),
     }
-    return render(request, 'core/provider_dashboard.html', context)
+    return render(request, 'core/job_provider_dashboard.html', context)
 
 @login_required
 def worker_dashboard(request):
@@ -302,19 +302,6 @@ def booking_confirmation(request, booking_id):
         'booking': booking
     }
     return render(request, 'core/booking_confirmation.html', context)
-
-@login_required
-def provider_dashboard(request):
-    if request.user.user_type != 'OFFLINE_PROVIDER':
-        messages.error(request, "Only providers can access the Provider Dashboard.")
-        return redirect('dashboard_redirect')
-        
-    bookings = OfflineBooking.objects.filter(service__provider=request.user).order_by('booking_date')
-    
-    context = {
-        'bookings': bookings
-    }
-    return render(request, 'core/provider_dashboard.html', context)
 
 @login_required
 def add_to_cart(request, product_id):

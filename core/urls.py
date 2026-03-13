@@ -22,7 +22,6 @@ urlpatterns = [
     path('store/cart/add/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
     path('store/checkout/', views.checkout, name='checkout'),
     path('service/booking/<int:booking_id>/', views.booking_confirmation, name='booking_confirmation'),
-    path('provider/dashboard/', views.provider_dashboard, name='provider_dashboard'),
     path('local-services/', views.offline_services, name='offline_services'),
     path('local-services/<int:service_id>/book/', views.book_offline_service, name='book_offline_service'),
     path('popular-services/', views.popular_services, name='popular_services'),
