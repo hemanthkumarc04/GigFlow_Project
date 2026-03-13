@@ -194,7 +194,7 @@ def offline_provider_dashboard(request):
         
     context = {
         'my_services': request.user.offline_services.all(),
-        'upcoming_bookings': request.user.offline_services.filter(bookings__status='CONFIRMED'),
+        'upcoming_bookings': OfflineBooking.objects.filter(service__provider=request.user, status__in=['PENDING', 'CONFIRMED']).order_by('booking_date'),
         'wallet_balance': request.user.wallet_balance
     }
     return render(request, 'core/offline_provider_dashboard.html', context)
@@ -368,9 +368,14 @@ def popular_services(request):
     promoted_workers = PromotedWorker.objects.order_by('-promotion_bid', '-promoted_at')
     categories = Category.objects.all()
     
+    open_provider_jobs = []
+    if request.user.is_authenticated and request.user.user_type == 'PROVIDER':
+        open_provider_jobs = Job.objects.filter(provider=request.user, status='OPEN').order_by('-created_at')
+        
     context = {
         'promoted_workers': promoted_workers,
         'categories': categories,
+        'open_provider_jobs': open_provider_jobs,
     }
     return render(request, 'core/popular_services.html', context)
 

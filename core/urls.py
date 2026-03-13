@@ -9,6 +9,7 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('profile/', views.edit_profile, name='edit_profile'),
     path('profile/<str:username>/', views.user_profile, name='user_profile'),
+    path('worker/<str:username>/', views.worker_profile, name='worker_profile'),
     
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('provider-dashboard/', views.provider_dashboard, name='provider_dashboard'),
@@ -37,7 +38,7 @@ urlpatterns = [
     path('job/<int:job_id>/reject/', views.reject_work, name='reject_work'),
     path('job/<int:job_id>/delete/', views.delete_job, name='delete_job'),
     path('job/<int:job_id>/preview/', views.review_work_preview, name='review_work_preview'),
-    path('job/<int:job_id>/assign/<str:username>/', views.assign_job, name='assign_job'),
+    path('assign-job/<str:username>/', views.assign_job, name='assign_job'),
     
     path('api/chat/', views.chat_api, name='chat_api'),
 ]

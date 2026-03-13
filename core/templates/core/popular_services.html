@@ -54,10 +54,27 @@
                             {% endif %}
                         </div>
                         
-                        <div class="mt-6">
-                            <a href="{% url 'worker_profile' promo.worker.username %}" class="block w-full text-center bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white font-semibold py-2 rounded-lg transition-colors border border-indigo-100">
+                        <div class="mt-4 flex flex-col gap-2">
+                            <a href="{% url 'worker_profile' promo.worker.username %}" class="block w-full text-center bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold py-2 rounded-xl transition-all border border-indigo-100 shadow-sm">
                                 View Profile
                             </a>
+                            
+                            {% if user.is_authenticated and user.user_type == 'PROVIDER' and open_provider_jobs %}
+                            <form action="{% url 'assign_job' promo.worker.username %}" method="POST" class="w-full">
+                                {% csrf_token %}
+                                <div class="flex gap-1">
+                                    <select name="job_id" required class="flex-grow bg-slate-50 border border-slate-200 text-xs rounded-l-xl px-2 py-2 outline-none focus:ring-1 focus:ring-indigo-500">
+                                        <option value="" disabled selected>Select Job</option>
+                                        {% for job in open_provider_jobs %}
+                                            <option value="{{ job.id }}">{{ job.title }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-2 rounded-r-xl transition-all shadow-sm">
+                                        Hire
+                                    </button>
+                                </div>
+                            </form>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
