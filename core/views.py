@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import CustomUser, Job, Transaction, Category, PromotedWorker, Product, OfflineService, OfflineBooking
+from .models import CustomUser, Job, Transaction, Category, PromotedWorker, Product, OfflineService, OfflineBooking, Cart, CartItem
 from django.http import JsonResponse
 from django.conf import settings
 
@@ -63,6 +63,51 @@ def dashboard_redirect(request):
         return redirect('offline_provider_dashboard')
     
     return redirect('login')
+
+def homepage(request):
+    """Public landing page showcasing platform features."""
+    from .models import Product, OfflineService, Job
+    featured_products = Product.objects.filter(stock__gt=0).order_by('-id')[:6]
+    featured_services = OfflineService.objects.all().order_by('-id')[:6]
+    open_jobs = Job.objects.filter(status='OPEN').order_by('-id')[:4]
+    context = {
+        'featured_products': featured_products,
+        'featured_services': featured_services,
+        'open_jobs': open_jobs,
+    }
+    return render(request, 'core/homepage.html', context)
+
+@login_required
+def user_profile(request, username):
+    """Public/own profile page for any user type."""
+    profile_user = get_object_or_404(CustomUser, username=username)
+    is_own_profile = request.user == profile_user
+    skills_list = [s.strip() for s in profile_user.skills.split(',') if s.strip()]
+    context = {
+        'profile_user': profile_user,
+        'is_own_profile': is_own_profile,
+        'skills_list': skills_list,
+    }
+    return render(request, 'core/user_profile.html', context)
+
+@login_required
+def edit_profile(request):
+    """Allow logged-in user to edit their own profile information."""
+    if request.method == 'POST':
+        user = request.user
+        user.first_name = request.POST.get('first_name', user.first_name)
+        user.last_name = request.POST.get('last_name', user.last_name)
+        user.email = request.POST.get('email', user.email)
+        user.bio = request.POST.get('bio', user.bio)
+        user.phone = request.POST.get('phone', user.phone)
+        user.location = request.POST.get('location', user.location)
+        user.skills = request.POST.get('skills', user.skills)
+        if 'profile_image' in request.FILES:
+            user.profile_image = request.FILES['profile_image']
+        user.save()
+        messages.success(request, 'Profile updated successfully!')
+        return redirect('user_profile', username=user.username)
+    return render(request, 'core/edit_profile.html', {'user': request.user})
 
 @login_required
 def admin_dashboard(request):
@@ -162,16 +207,171 @@ def marketplace(request):
     return render(request, 'core/marketplace.html', context)
 
 def products(request):
+    sort_by = request.GET.get('sort_by', '')
+    product_list = Product.objects.all()
+    
+    if sort_by == 'price_asc':
+        product_list = product_list.order_by('price')
+    elif sort_by == 'price_desc':
+        product_list = product_list.order_by('-price')
+    elif sort_by == 'name':
+        product_list = product_list.order_by('name')
+    else:
+        product_list = product_list.order_by('-id')
+
     context = {
-        'products': Product.objects.all().order_by('-id'),
+        'products': product_list,
+        'sort_by': sort_by
     }
     return render(request, 'core/products.html', context)
 
 def offline_services(request):
+    sort_by = request.GET.get('sort_by', 'availability')
+    location_query = request.GET.get('location', '').strip()
+    
+    services_list = OfflineService.objects.all()
+    
+    if location_query:
+        services_list = services_list.filter(location__icontains=location_query)
+        
+    if sort_by == 'price_asc':
+        services_list = services_list.order_by('base_price')
+    elif sort_by == 'price_desc':
+        services_list = services_list.order_by('-base_price')
+    elif sort_by == 'availability' or not sort_by:
+        # Simplistic availability: just order newest first. In a real app we'd sort by nearest/opening time
+        services_list = services_list.order_by('-id')
+
     context = {
-        'services': OfflineService.objects.all().order_by('-id'),
+        'services': services_list,
+        'sort_by': sort_by,
+        'location_query': location_query
     }
     return render(request, 'core/offline_services.html', context)
+
+@login_required
+def book_offline_service(request, service_id):
+    if request.method == 'POST':
+        from django.utils.dateparse import parse_datetime
+        from django.utils import timezone
+        
+        service = get_object_or_404(OfflineService, id=service_id)
+        booking_time_str = request.POST.get('booking_time')
+        notes = request.POST.get('notes', '')
+        phone = request.POST.get('customer_phone', '')
+        
+        if not booking_time_str:
+            messages.error(request, 'Please select a booking date and time.')
+            return redirect('offline_services')
+            
+        if not phone:
+            messages.error(request, 'Please provide a contact phone number.')
+            return redirect('offline_services')
+
+        booking_dt = parse_datetime(booking_time_str)
+        if booking_dt is None:
+            messages.error(request, 'Invalid date format.')
+            return redirect('offline_services')
+            
+        if timezone.is_naive(booking_dt):
+            booking_dt = timezone.make_aware(booking_dt)
+            
+        booking_time = booking_dt.time()
+        
+        if service.opening_time <= booking_time <= service.closing_time:
+            booking = OfflineBooking.objects.create(
+                customer=request.user,
+                service=service,
+                booking_date=booking_dt,
+                customer_phone=phone,
+                notes=notes
+            )
+            # Format time beautifully e.g. Oct 12, 2026 02:30 PM
+            formatted_date = booking_dt.strftime("%b %d, %Y %I:%M %p")
+            messages.success(request, f'Successfully booked {service.title} for {formatted_date}!')
+            return redirect('booking_confirmation', booking_id=booking.id)
+        else:
+            messages.error(request, f'Selected time is outside operating hours ({service.opening_time.strftime("%I:%M %p")} - {service.closing_time.strftime("%I:%M %p")}).')
+            
+    return redirect('offline_services')
+
+@login_required
+def booking_confirmation(request, booking_id):
+    booking = get_object_or_404(OfflineBooking, id=booking_id, customer=request.user)
+    context = {
+        'booking': booking
+    }
+    return render(request, 'core/booking_confirmation.html', context)
+
+@login_required
+def provider_dashboard(request):
+    if request.user.user_type != 'OFFLINE_PROVIDER':
+        messages.error(request, "Only providers can access the Provider Dashboard.")
+        return redirect('dashboard_redirect')
+        
+    bookings = OfflineBooking.objects.filter(service__provider=request.user).order_by('booking_date')
+    
+    context = {
+        'bookings': bookings
+    }
+    return render(request, 'core/provider_dashboard.html', context)
+
+@login_required
+def add_to_cart(request, product_id):
+    if request.method == 'POST':
+        product = get_object_or_404(Product, id=product_id)
+        if product.stock > 0:
+            cart, created = Cart.objects.get_or_create(user=request.user)
+            cart_item, item_created = CartItem.objects.get_or_create(cart=cart, product=product)
+            
+            if not item_created:
+                cart_item.quantity += 1
+                cart_item.save()
+            messages.success(request, f'Added {product.name} to your cart.')
+        else:
+            messages.error(request, 'This product is out of stock.')
+    return redirect('products')
+
+@login_required
+def view_cart(request):
+    cart, created = Cart.objects.get_or_create(user=request.user)
+    context = {
+        'cart': cart,
+    }
+    return render(request, 'core/cart.html', context)
+
+@login_required
+def checkout(request):
+    if request.method == 'POST':
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        if hasattr(cart, 'items') and cart.items.exists():
+            total = cart.get_total_price()
+            
+            # Simple stock deduction logic
+            for item in cart.items.all():
+                if item.product.stock >= item.quantity:
+                    item.product.stock -= item.quantity
+                    item.product.save()
+                    
+                    # Record transaction to seller
+                    item.product.seller.wallet_balance += item.get_cost()
+                    item.product.seller.save()
+                    Transaction.objects.create(
+                        job=None,
+                        user=item.product.seller,
+                        amount=item.get_cost(),
+                        transaction_type='RELEASE'
+                    )
+                else:
+                    messages.error(request, f'Not enough stock for {item.product.name}.')
+                    return redirect('view_cart')
+                    
+            cart.items.all().delete()
+            messages.success(request, f'Successfully purchased items! Total paid: ${total}')
+            return redirect('customer_dashboard')
+        else:
+            messages.error(request, 'Your cart is empty.')
+    return redirect('view_cart')
 
 def ai_assistant_mode(request):
     return render(request, 'core/ai_assistant.html')
@@ -480,7 +680,14 @@ def chat_api(request):
             products = list(Product.objects.filter(stock__gt=0)[:5].values('name', 'price', 'id'))
             services = list(OfflineService.objects.all()[:5].values('title', 'base_price', 'id'))
             
-            context_str = f"Platform Data Context:\nJobs: {open_jobs}\nProducts: {products}\nServices: {services}\n"
+            cart_context = ""
+            if request.user.is_authenticated:
+                cart, _ = Cart.objects.get_or_create(user=request.user)
+                cart_items = list(cart.items.all().values('product__name', 'quantity'))
+                if cart_items:
+                    cart_context = f"\nUnpurchased Items in Cart: {cart_items}"
+            
+            context_str = f"Platform Data Context:\nJobs: {open_jobs}\nProducts: {products}\nServices: {services}{cart_context}\n"
             
             if not api_key:
                 # If the key is not provided yet, fallback to a mocked response

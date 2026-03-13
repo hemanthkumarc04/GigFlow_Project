@@ -1,0 +1,253 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load currency_tags %}
+
+{% block content %}
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║           HERO SECTION                   ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<section class="relative min-h-screen flex flex-col items-center justify-center overflow-hidden text-center px-6"
+    style="background: url('https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1920&q=80') center/cover no-repeat;">
+    
+    <!-- Translucent overlay -->
+    <div class="absolute inset-0" style="background: linear-gradient(135deg, rgba(255,107,107,0.78) 0%, rgba(255,209,102,0.7) 100%); backdrop-filter: blur(2px);"></div>
+    
+    <div class="relative z-10 max-w-4xl mx-auto">
+        <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white text-xs font-bold px-4 py-2 rounded-full mb-6 border border-white/30">
+            <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+            100+ Active Gigs &nbsp;·&nbsp; 50+ Products &nbsp;·&nbsp; 30+ Local Services
+        </div>
+
+        <h1 class="text-5xl md:text-7xl font-black text-white leading-tight mb-6 drop-shadow-lg">
+            Your All-in-One<br>
+            <span class="text-yellow-200">Work & Commerce</span><br>
+            Platform
+        </h1>
+        
+        <p class="text-white/90 text-lg md:text-xl font-medium max-w-2xl mx-auto mb-10 drop-shadow">
+            Find digital gigs, shop products, book local services — all in one seamless platform powered by AI.
+        </p>
+
+        <div class="flex flex-wrap justify-center gap-4">
+            {% if not user.is_authenticated %}
+            <a href="{% url 'register' %}" class="bg-white text-red-500 font-black px-8 py-4 rounded-2xl shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all text-base">
+                Get Started Free →
+            </a>
+            <a href="{% url 'login' %}" class="bg-white/20 backdrop-blur-sm text-white border border-white/40 font-bold px-8 py-4 rounded-2xl hover:bg-white/30 transition-all text-base">
+                Sign In
+            </a>
+            {% else %}
+            <a href="{% url 'dashboard_redirect' %}" class="bg-white text-red-500 font-black px-8 py-4 rounded-2xl shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all text-base">
+                Go to Dashboard →
+            </a>
+            {% endif %}
+        </div>
+        
+        <!-- Stats row -->
+        <div class="flex flex-wrap justify-center gap-8 mt-14">
+            <div class="text-white text-center">
+                <div class="text-3xl font-black drop-shadow">500+</div>
+                <div class="text-white/80 text-sm font-semibold mt-1">Freelancers</div>
+            </div>
+            <div class="text-white text-center border-l border-white/30 pl-8">
+                <div class="text-3xl font-black drop-shadow">₹50L+</div>
+                <div class="text-white/80 text-sm font-semibold mt-1">Paid Out</div>
+            </div>
+            <div class="text-white text-center border-l border-white/30 pl-8">
+                <div class="text-3xl font-black drop-shadow">4.9 ★</div>
+                <div class="text-white/80 text-sm font-semibold mt-1">Avg Rating</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll indicator -->
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/60 animate-bounce">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+    </div>
+</section>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║          WHAT WE OFFER                   ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<section class="py-20 px-6" style="background: #F8F9FE;">
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-14">
+            <span class="text-xs font-black text-red-400 uppercase tracking-widest">Everything in One Place</span>
+            <h2 class="text-4xl font-black text-gray-900 mt-2">The Complete Platform</h2>
+            <p class="text-gray-500 mt-3 max-w-xl mx-auto">Whether you're a freelancer, buyer, seller, or local service provider — GigFlow has your corner.</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Card 1 -->
+            <a href="{% url 'marketplace' %}" class="group bg-white rounded-3xl p-6 shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer block">
+                <div class="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform" style="background: linear-gradient(135deg, #EEF2FF, #E0E7FF);">
+                    <svg class="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                </div>
+                <h3 class="font-black text-gray-900 text-base mb-1.5">Gig Marketplace</h3>
+                <p class="text-gray-500 text-sm leading-relaxed">Post & find digital projects with escrow-secured payments.</p>
+                <span class="mt-4 inline-flex items-center text-xs font-bold text-indigo-600 group-hover:gap-2 gap-1 transition-all">Browse Jobs <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></span>
+            </a>
+            <!-- Card 2 -->
+            <a href="{% url 'products' %}" class="group bg-white rounded-3xl p-6 shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer block">
+                <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform" style="background: linear-gradient(135deg, #FFF7ED, #FED7AA);">
+                    <svg class="w-7 h-7 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                </div>
+                <h3 class="font-black text-gray-900 text-base mb-1.5">Product Store</h3>
+                <p class="text-gray-500 text-sm leading-relaxed">Shop physical & digital products from verified sellers.</p>
+                <span class="mt-4 inline-flex items-center text-xs font-bold text-orange-500 group-hover:gap-2 gap-1 transition-all">Shop Now <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></span>
+            </a>
+            <!-- Card 3 -->
+            <a href="{% url 'offline_services' %}" class="group bg-white rounded-3xl p-6 shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer block">
+                <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform" style="background: linear-gradient(135deg, #ECFDF5, #A7F3D0);">
+                    <svg class="w-7 h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </div>
+                <h3 class="font-black text-gray-900 text-base mb-1.5">Local Services</h3>
+                <p class="text-gray-500 text-sm leading-relaxed">Book nearby professionals for repairs, tutoring & more.</p>
+                <span class="mt-4 inline-flex items-center text-xs font-bold text-emerald-600 group-hover:gap-2 gap-1 transition-all">Find Services <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></span>
+            </a>
+            <!-- Card 4 -->
+            <a href="{% url 'ai_assistant' %}" class="group bg-white rounded-3xl p-6 shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer block">
+                <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform" style="background: linear-gradient(135deg, #FDF4FF, #E9D5FF);">
+                    <svg class="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                </div>
+                <h3 class="font-black text-gray-900 text-base mb-1.5">AI Assistant</h3>
+                <p class="text-gray-500 text-sm leading-relaxed">Talk to Aria — our voice-powered AI that knows the platform.</p>
+                <span class="mt-4 inline-flex items-center text-xs font-bold text-purple-600 group-hover:gap-2 gap-1 transition-all">Try Aria <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║          OPEN GIGS                       ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+{% if open_jobs %}
+<section class="py-16 px-6 bg-white">
+    <div class="max-w-6xl mx-auto">
+        <div class="flex justify-between items-end mb-10">
+            <div>
+                <span class="text-xs font-black text-indigo-500 uppercase tracking-widest">Digital Work</span>
+                <h2 class="text-3xl font-black text-gray-900 mt-1">Open Gigs</h2>
+            </div>
+            <a href="{% url 'marketplace' %}" class="text-sm font-bold text-indigo-600 hover:underline flex items-center gap-1">View All <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {% for job in open_jobs %}
+            <div class="rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:-translate-y-1 transition-all">
+                <div class="h-2 w-full" style="background: linear-gradient(90deg, #6366f1, #a855f7);"></div>
+                <div class="p-4">
+                    <span class="inline-block text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md mb-2">{{ job.category.name|default:"General" }}</span>
+                    <h3 class="font-bold text-gray-900 text-sm leading-snug mb-2 line-clamp-2">{{ job.title }}</h3>
+                    <div class="flex justify-between items-center mt-3">
+                        <span class="text-lg font-black text-gray-900">{{ job.budget|dual_currency }}</span>
+                        <a href="{% url 'marketplace' %}" class="text-xs font-bold text-indigo-600 hover:underline">Apply →</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║          FEATURED PRODUCTS               ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+{% if featured_products %}
+<section class="py-16 px-6" style="background: #F8F9FE;">
+    <div class="max-w-6xl mx-auto">
+        <div class="flex justify-between items-end mb-10">
+            <div>
+                <span class="text-xs font-black text-orange-500 uppercase tracking-widest">Shop</span>
+                <h2 class="text-3xl font-black text-gray-900 mt-1">Featured Products</h2>
+            </div>
+            <a href="{% url 'products' %}" class="text-sm font-bold text-orange-500 hover:underline flex items-center gap-1">View All <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {% for product in featured_products %}
+            <a href="{% url 'products' %}" class="group bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md hover:-translate-y-1 transition-all">
+                <div class="h-28 bg-gray-50 overflow-hidden">
+                    {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    {% else %}
+                    <div class="w-full h-full flex items-center justify-center text-gray-200">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="p-3">
+                    <p class="text-xs font-bold text-gray-800 truncate">{{ product.name }}</p>
+                    <p class="text-sm font-black mt-1" style="color: #FF6B6B;">{{ product.price|dual_currency }}</p>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║          LOCAL SERVICES                  ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+{% if featured_services %}
+<section class="py-16 px-6 bg-white">
+    <div class="max-w-6xl mx-auto">
+        <div class="flex justify-between items-end mb-10">
+            <div>
+                <span class="text-xs font-black text-emerald-600 uppercase tracking-widest">Near You</span>
+                <h2 class="text-3xl font-black text-gray-900 mt-1">Local Services</h2>
+            </div>
+            <a href="{% url 'offline_services' %}" class="text-sm font-bold text-emerald-600 hover:underline flex items-center gap-1">View All <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for service in featured_services %}
+            <a href="{% url 'offline_services' %}" class="group bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all block">
+                <div class="h-36 relative overflow-hidden bg-emerald-50">
+                    {% if service.image %}
+                    <img src="{{ service.image.url }}" alt="{{ service.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    {% else %}
+                    <div class="w-full h-full flex items-center justify-center">
+                        <svg class="w-12 h-12 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    </div>
+                    {% endif %}
+                    <div class="absolute top-3 right-3 bg-white/90 backdrop-blur text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-lg shadow-sm">{{ service.base_price|dual_currency }}</div>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-bold text-gray-900 leading-snug">{{ service.title }}</h3>
+                    <p class="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                        {{ service.location }}
+                    </p>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║          CTA FOOTER SECTION              ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<section class="relative py-24 px-6 text-center overflow-hidden"
+    style="background: url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&q=80') center/cover no-repeat;">
+    <div class="absolute inset-0" style="background: rgba(26,31,54,0.82); backdrop-filter: blur(4px);"></div>
+    <div class="relative z-10 max-w-2xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black text-white mb-5 leading-tight">Ready to start growing?</h2>
+        <p class="text-white/70 text-lg mb-8">Join thousands of professionals already on GigFlow.</p>
+        <div class="flex justify-center gap-4 flex-wrap">
+            {% if not user.is_authenticated %}
+            <a href="{% url 'register' %}" class="font-black text-base px-8 py-4 rounded-2xl text-gray-900 shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all" style="background: linear-gradient(135deg, #FF6B6B, #FFD166);">
+                Join GigFlow Free →
+            </a>
+            {% else %}
+            <a href="{% url 'dashboard_redirect' %}" class="font-black text-base px-8 py-4 rounded-2xl text-gray-900 shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all" style="background: linear-gradient(135deg, #FF6B6B, #FFD166);">
+                Go to Dashboard →
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}

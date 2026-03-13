@@ -14,6 +14,10 @@ class CustomUser(AbstractUser):
     wallet_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     is_verified = models.BooleanField(default=False)
     skills = models.TextField(blank=True, help_text="Comma-separated skills")
+    bio = models.TextField(blank=True, help_text="Short personal/professional bio")
+    phone = models.CharField(max_length=20, blank=True)
+    location = models.CharField(max_length=100, blank=True)
+    profile_image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
     
     @property
     def average_rating(self):
@@ -141,8 +145,30 @@ class OfflineBooking(models.Model):
     service = models.ForeignKey(OfflineService, on_delete=models.CASCADE, related_name='bookings')
     booking_date = models.DateTimeField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    customer_phone = models.CharField(max_length=20, help_text="Contact number for the provider")
     notes = models.TextField(blank=True, help_text="Special instructions from customer")
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
         return f"{self.customer.username} - {self.service.title} on {self.booking_date.date()}"
+
+class Cart(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='cart')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def get_total_price(self):
+        return sum(item.get_cost() for item in self.items.all())
+        
+    def __str__(self):
+        return f"Cart for {self.user.username}"
+
+class CartItem(models.Model):
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    
+    def get_cost(self):
+        return self.product.price * self.quantity
+        
+    def __str__(self):
+        return f"{self.quantity} x {self.product.name}"

@@ -1,0 +1,108 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="flex-grow bg-slate-50 p-6 md:p-12 transition-all duration-300">
+    <div class="max-w-3xl mx-auto">
+        
+        <div class="glass bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-emerald-100 text-center relative overflow-hidden">
+            
+            <!-- Background Decoration -->
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-emerald-50 rounded-full blur-3xl opacity-50"></div>
+            <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-indigo-50 rounded-full blur-3xl opacity-50"></div>
+
+            <div class="relative z-10">
+                <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight sm:text-4xl mb-4">Booking Confirmed!</h1>
+                <p class="text-slate-600 text-lg max-w-lg mx-auto mb-8">Your appointment for <span class="font-bold text-slate-800">{{ booking.service.title }}</span> with <span class="font-bold text-slate-800">{{ booking.service.provider.username }}</span> is locked in.</p>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left max-w-xl mx-auto mb-10">
+                    <div class="bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Date & Time</p>
+                        <p class="font-bold text-slate-800 text-sm">{{ booking.booking_date|date:"F j, Y, g:i a" }}</p>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Location</p>
+                        <p class="font-bold text-slate-800 text-sm flex items-center gap-1">
+                            <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            {{ booking.service.location }}
+                        </p>
+                    </div>
+                    {% if booking.notes %}
+                    <div class="bg-slate-50 border border-slate-100 p-4 rounded-xl sm:col-span-2">
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Your Notes</p>
+                        <p class="font-medium text-slate-600 text-sm italic">"{{ booking.notes }}"</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="border-t border-slate-100 pt-8 pb-4">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Time Until Service</h3>
+                    <div id="countdown" class="flex justify-center gap-4 text-slate-800" data-target="{{ booking.booking_date|date:'c' }}">
+                        <div class="flex flex-col items-center">
+                            <div class="w-16 h-16 bg-slate-900 text-white rounded-xl flex items-center justify-center text-2xl font-black shadow-lg" id="days">00</div>
+                            <span class="text-xs font-bold text-slate-500 mt-2 uppercase">Days</span>
+                        </div>
+                        <div class="text-2xl font-black text-slate-300 mt-3">:</div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-16 h-16 bg-slate-900 text-white rounded-xl flex items-center justify-center text-2xl font-black shadow-lg" id="hours">00</div>
+                            <span class="text-xs font-bold text-slate-500 mt-2 uppercase">Hours</span>
+                        </div>
+                        <div class="text-2xl font-black text-slate-300 mt-3">:</div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-16 h-16 bg-slate-900 text-white rounded-xl flex items-center justify-center text-2xl font-black shadow-lg" id="minutes">00</div>
+                            <span class="text-xs font-bold text-slate-500 mt-2 uppercase">Mins</span>
+                        </div>
+                        <div class="text-2xl font-black text-slate-300 mt-3">:</div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-16 h-16 bg-slate-100 text-slate-900 rounded-xl flex items-center justify-center text-2xl font-black border border-slate-200" id="seconds">00</div>
+                            <span class="text-xs font-bold text-slate-500 mt-2 uppercase">Secs</span>
+                        </div>
+                    </div>
+                    <p id="countdown-expired" class="hidden text-emerald-600 font-bold text-lg mt-4 animate-pulse">Your service appointment is happening now!</p>
+                </div>
+                
+                <div class="mt-8 flex justify-center gap-4">
+                    <a href="{% url 'offline_services' %}" class="px-6 py-3 rounded-xl font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors">Book Another</a>
+                    <a href="{% url 'dashboard_redirect' %}" class="px-6 py-3 rounded-xl font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-sm">My Dashboard</a>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const countdownEl = document.getElementById('countdown');
+        if (!countdownEl) return;
+        
+        const targetDate = new Date(countdownEl.dataset.target).getTime();
+        
+        const updateTimer = setInterval(function() {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+            
+            if (distance < 0) {
+                clearInterval(updateTimer);
+                countdownEl.classList.add('hidden');
+                document.getElementById('countdown-expired').classList.remove('hidden');
+                return;
+            }
+            
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            
+            document.getElementById('days').innerText = days.toString().padStart(2, '0');
+            document.getElementById('hours').innerText = hours.toString().padStart(2, '0');
+            document.getElementById('minutes').innerText = minutes.toString().padStart(2, '0');
+            document.getElementById('seconds').innerText = seconds.toString().padStart(2, '0');
+            
+        }, 1000);
+    });
+</script>
+{% endblock %}

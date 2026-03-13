@@ -10,6 +10,19 @@
             <p class="mt-4 text-xl text-slate-500 max-w-2xl mx-auto">Buy high-quality goods directly from our community of verified sellers.</p>
         </div>
 
+        <div class="flex justify-between items-center mb-8">
+            <p class="text-slate-500 font-medium">{{ products.count }} Product{{ products.count|pluralize }} Found</p>
+            <form method="GET" class="flex items-center gap-2">
+                <label for="sort_by" class="text-sm font-medium text-slate-600">Sort by:</label>
+                <select name="sort_by" id="sort_by" onchange="this.form.submit()" class="text-sm bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-500">
+                    <option value="" {% if sort_by == '' %}selected{% endif %}>Newest Arrivals</option>
+                    <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                    <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                    <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name: A to Z</option>
+                </select>
+            </form>
+        </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {% for product in products %}
             <div class="glass bg-white flex flex-col rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-lg transition-transform hover:-translate-y-1">
@@ -42,12 +55,14 @@
                         <span class="text-xs font-medium px-2 py-1 bg-slate-100 text-slate-600 rounded">Stock: {{ product.stock }}</span>
                     </div>
 
-                    <button {% if product.stock <= 0 or user.user_type != 'CUSTOMER' %}disabled{% endif %} class="w-full mt-4 py-3 rounded-xl font-bold transition-colors shadow-sm
-                        {% if product.stock > 0 and user.user_type == 'CUSTOMER' %}bg-indigo-600 text-white hover:bg-indigo-700
-                        {% else %}bg-slate-100 text-slate-400 cursor-not-allowed{% endif %}"
-                        onclick="alert('Payment gateway integration pending.')">
-                        {% if user.user_type == 'CUSTOMER' %}Buy Now{% else %}Customers Only{% endif %}
-                    </button>
+                    <form action="{% url 'add_to_cart' product.id %}" method="POST" class="w-full mt-4">
+                        {% csrf_token %}
+                        <button type="submit" {% if product.stock <= 0 or not user.is_authenticated %}disabled{% endif %} class="w-full py-3 rounded-xl font-bold transition-colors shadow-sm
+                            {% if product.stock > 0 and user.is_authenticated %}bg-indigo-600 text-white hover:bg-indigo-700
+                            {% else %}bg-slate-100 text-slate-400 cursor-not-allowed{% endif %}">
+                            {% if user.is_authenticated %}Add to Cart{% else %}Login to Buy{% endif %}
+                        </button>
+                    </form>
                 </div>
             </div>
             {% empty %}
