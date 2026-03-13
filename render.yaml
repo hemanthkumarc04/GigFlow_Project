@@ -2,6 +2,7 @@ databases:
   - name: gigflow_db
     databaseName: gigflow
     user: gigflow_user
+    plan: free
 
 services:
   - type: web

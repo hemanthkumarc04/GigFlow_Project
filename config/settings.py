@@ -85,12 +85,11 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 
 if DATABASE_URL:
     DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
+        'default': dj_database_url.parse(DATABASE_URL)
     }
+    # Add common production settings
+    DATABASES['default']['CONN_MAX_AGE'] = 600
+    DATABASES['default']['CONN_HEALTH_CHECKS'] = True
 else:
     # Local fallback for development
     DATABASES = {
