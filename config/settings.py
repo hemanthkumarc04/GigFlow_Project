@@ -132,7 +132,9 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Use WhiteNoise to serve static files in production
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# NOTE: Using CompressedStaticFilesStorage (not Manifest) so deploys to Render
+# never break CSS/JS due to a stale or missing staticfiles.json manifest.
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / "media"
